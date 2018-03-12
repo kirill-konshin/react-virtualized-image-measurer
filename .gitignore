@@ -1,0 +1,8 @@
+.DS_Store
+.idea
+.next
+.vscode
+lib
+node_modules
+npm-debug*
+out
