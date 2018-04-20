@@ -1,0 +1,8 @@
+.idea
+.babelrc
+.next
+.vscode
+npm-debug*
+next.config.js
+out
+pages

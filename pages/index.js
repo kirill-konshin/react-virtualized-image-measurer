@@ -1,149 +1,80 @@
-import React, {PureComponent} from "react";
+import React from "react";
 import {
-    AutoSizer,
     CellMeasurer,
     CellMeasurerCache,
     createMasonryCellPositioner,
-    Masonry,
-    WindowScroller
+    Masonry
 } from "react-virtualized";
-import list from "./components/data";
-import Card from "./components/Card";
-import ImageMeasurer from "../src/index";
+import ImageMeasurer from "../src";
+import list from "./data"; // an array of images with titles
 
-const spacer = 20;
-const columnCount = 3;
+const noCacheList = list.map(item => ({
+    ...item,
+    image: item.image + "?noCache=" + Math.random()
+}));
+
+const columnWidth = 200;
 const defaultHeight = 250;
-const maxHeight = 300;
+const defaultWidth = columnWidth;
 
-export default class Page extends PureComponent {
-
-    state = {data: []};
-    columnWidth = 250;
-    masonryRef;
-    cellPositioner = null;
-
-    cache = new CellMeasurerCache({
-        defaultHeight: defaultHeight,
-        defaultWidth: this.columnWidth,
+const MasonryComponent = ({itemsWithSizes}) => {
+    // Default sizes help Masonry decide how many images to batch-measure
+    const cache = new CellMeasurerCache({
+        defaultHeight,
+        defaultWidth,
         fixedWidth: true
     });
 
-    getCellPositioner = width => {
-        this.setColumnWidth(width);
-        if (!this.cellPositioner) {
-            this.cellPositioner = createMasonryCellPositioner({
-                cellMeasurerCache: this.cache,
-                columnCount,
-                columnWidth: this.columnWidth,
-                spacer
-            });
-        }
-        return this.cellPositioner;
-    };
+    // Our masonry layout will use 3 columns with a 10px gutter between
+    const cellPositioner = createMasonryCellPositioner({
+        cellMeasurerCache: cache,
+        columnCount: 3,
+        columnWidth,
+        spacer: 10
+    });
 
-    setColumnWidth = width => {
-        this.columnWidth = Math.floor((width - spacer * (columnCount - 1)) / columnCount);
-    };
-
-    onResize = ({width}) => {
-        this.getCellPositioner(width);
-
-        this.cache.clearAll();
-
-        this.cellPositioner.reset({
-            columnCount,
-            columnWidth: this.columnWidth,
-            spacer
-        });
-
-        //masonryRef.recomputeCellPositions();
-        this.masonryRef.clearCellPositions();
-    };
-
-
-    renderMasonry(itemsWithSizes){
-        return (
-            <WindowScroller>
-                {({height, scrollTop, isScrolling}) => (
-                    <AutoSizer
-                        disableHeight
-                        height={height}
-                        scrollTop={scrollTop}
-                        onResize={this.onResize}
-                    >
-                        {({width}) => (
-                            <Masonry
-                                autoHeight
-                                cellCount={itemsWithSizes.length}
-                                cellMeasurerCache={this.cache}
-                                cellPositioner={this.getCellPositioner(width)}
-                                cellRenderer={this.cellRenderer.bind(this, itemsWithSizes)}
-                                isScrolling={isScrolling}
-                                scrollTop={scrollTop}
-                                width={width}
-                                height={height}
-                                ref={ref => (this.masonryRef = ref)}
-                            />
-                        )}
-                    </AutoSizer>
-                )}
-            </WindowScroller>
-        );
-
-    }
-
-    cellRenderer = (itemsWithSizes, {index, key, parent, style}) => {
+    function cellRenderer({index, key, parent, style}) {
         const {item, size} = itemsWithSizes[index];
-
-        style.width = this.columnWidth + "px"; //FIXME NASTY HACK
-
-        let desiredHeight = defaultHeight;
-
-        if (size) {
-            desiredHeight = Math.floor(size.height / size.width * this.columnWidth);
-            if (desiredHeight > maxHeight) desiredHeight = maxHeight;
-        }
+        const height = columnWidth * (size.height / size.width) || defaultHeight;
 
         return (
-            <CellMeasurer cache={this.cache} index={index} key={key} parent={parent}>
-                {({measure}) => (
-                    <div style={style}>
-                        <Card
-                            title={index + item.title}
-                            image={item.image}
-                            size={{
-                                height: desiredHeight + "px"
-                            }}
-                        />
-                    </div>
-                )}
+            <CellMeasurer cache={cache} index={index} key={key} parent={parent}>
+                <div style={style}>
+                    <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                            height: height,
+                            width: columnWidth
+                        }}
+                    />
+                    <h4>{item.title}</h4>
+                </div>
             </CellMeasurer>
         );
-    };
-
-    componentDidMount() {
-        setTimeout(() => {
-            this.setState({
-                data: list.map(item => ({
-                    ...item,
-                    image: item.image + "?noCache=" + Math.random()
-                }))
-            }); // emulate server response
-        }, 1000);
     }
 
-    render() {
-        if (!this.state.data.length) return <div>Loading</div>;
-        return (
-            <ImageMeasurer
-                items={this.state.data}
-                image={item => item.image}
-                defaultWidth={this.columnWidth}
-                defaultHeight={defaultHeight}
-            >
-                {({itemsWithSizes}) => this.renderMasonry(itemsWithSizes)}
-            </ImageMeasurer>
-        );
-    }
-}
+    return (
+        <Masonry
+            cellCount={itemsWithSizes.length}
+            cellMeasurerCache={cache}
+            cellPositioner={cellPositioner}
+            cellRenderer={cellRenderer}
+            height={600}
+            width={800}
+        />
+    );
+};
+
+export default () => (
+    <ImageMeasurer
+        items={noCacheList}
+        image={item => item.image}
+        defaultHeight={defaultHeight}
+        defaultWidth={defaultWidth}
+    >
+        {({itemsWithSizes}) => (
+            <MasonryComponent itemsWithSizes={itemsWithSizes}/>
+        )}
+    </ImageMeasurer>
+);
