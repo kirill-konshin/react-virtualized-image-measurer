@@ -17,21 +17,22 @@ const columnWidth = 200;
 const defaultHeight = 250;
 const defaultWidth = columnWidth;
 
-const MasonryComponent = ({itemsWithSizes}) => {
-    // Default sizes help Masonry decide how many images to batch-measure
-    const cache = new CellMeasurerCache({
-        defaultHeight,
-        defaultWidth,
-        fixedWidth: true
-    });
+// Default sizes help Masonry decide how many images to batch-measure
+const cache = new CellMeasurerCache({
+    defaultHeight,
+    defaultWidth,
+    fixedWidth: true
+});
 
-    // Our masonry layout will use 3 columns with a 10px gutter between
-    const cellPositioner = createMasonryCellPositioner({
-        cellMeasurerCache: cache,
-        columnCount: 3,
-        columnWidth,
-        spacer: 10
-    });
+// Our masonry layout will use 3 columns with a 10px gutter between
+const cellPositioner = createMasonryCellPositioner({
+    cellMeasurerCache: cache,
+    columnCount: 3,
+    columnWidth,
+    spacer: 10
+});
+
+const MasonryComponent = ({itemsWithSizes}) => {
 
     function cellRenderer({index, key, parent, style}) {
         const {item, size} = itemsWithSizes[index];
