@@ -8,9 +8,9 @@ import {
 import ImageMeasurer from "../src";
 import list from "./data"; // an array of images with titles
 
-const noCacheList = list.map(item => ({
-    ...item,
-    image: item.image + "?noCache=" + Math.random()
+const noCacheList = list.map((item, index) => ({
+    title: index + '. ' + item.title,
+    image: item.image + (item.image ? "?noCache=" + Math.random() : '')
 }));
 
 const columnWidth = 200;
@@ -41,15 +41,18 @@ const MasonryComponent = ({itemsWithSizes}) => {
         return (
             <CellMeasurer cache={cache} index={index} key={key} parent={parent}>
                 <div style={style}>
-                    <img
-                        src={item.image}
-                        alt={item.title}
-                        style={{
-                            height: height,
-                            width: columnWidth
-                        }}
-                    />
-                    <h4>{item.title}</h4>
+                    <div>{item.title}</div>
+                    {item.image && (
+                        <img
+                            src={item.image}
+                            alt={item.title}
+                            style={{
+                                height: height,
+                                width: columnWidth,
+                                display: 'block'
+                            }}
+                        />
+                    )}
                 </div>
             </CellMeasurer>
         );
@@ -67,15 +70,25 @@ const MasonryComponent = ({itemsWithSizes}) => {
     );
 };
 
-export default () => (
-    <ImageMeasurer
-        items={noCacheList}
-        image={item => item.image}
-        defaultHeight={defaultHeight}
-        defaultWidth={defaultWidth}
-    >
-        {({itemsWithSizes}) => (
-            <MasonryComponent itemsWithSizes={itemsWithSizes}/>
-        )}
-    </ImageMeasurer>
-);
+export default class Index extends React.Component {
+    static getInitialProps() {
+        return {
+            noCacheList: noCacheList
+        };
+    }
+
+    render() {
+        return (
+            <ImageMeasurer
+                items={this.props.noCacheList}
+                image={item => item.image}
+                defaultHeight={defaultHeight}
+                defaultWidth={defaultWidth}
+            >
+                {({itemsWithSizes}) => (
+                    <MasonryComponent itemsWithSizes={itemsWithSizes}/>
+                )}
+            </ImageMeasurer>
+        );
+    }
+}

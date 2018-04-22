@@ -94,7 +94,7 @@ export default class ImageMeasurer extends PureComponent {
     setTimeout = (src) => {
         this.clearTimeout(src);
         setTimeout(() => {
-            this.onLoad(src, this.getDefaultSize());
+            this.setDefaultSize(src);
         }, this.props.timeout);
     };
 
@@ -102,6 +102,31 @@ export default class ImageMeasurer extends PureComponent {
         width: this.props.defaultWidth,
         height: this.props.defaultHeight
     });
+
+    setDefaultSize = (src) => {
+        this.onLoad(src, this.getDefaultSize());
+    };
+
+    componentDidUpdate() {
+
+        const {items, image} = this.props;
+
+        items.forEach(item => {
+
+            const src = image(item);
+
+            if (!!this.timeouts[src] || this.state.sizes[src]) return;
+
+            if (!src) {
+                this.setDefaultSize(src);
+                return;
+            }
+
+            this.setTimeout(src);
+
+        })
+
+    }
 
     render() {
 
@@ -117,8 +142,6 @@ export default class ImageMeasurer extends PureComponent {
 
                         if (!src) return null;
 
-                        this.setTimeout(src);
-
                         return (
                             <img
                                 key={src}
@@ -128,6 +151,7 @@ export default class ImageMeasurer extends PureComponent {
                                 onError={error => this.onLoadError(src, error)}
                             />
                         );
+
                     })}
                 </span>
 
