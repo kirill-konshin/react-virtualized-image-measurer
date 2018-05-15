@@ -1,16 +1,17 @@
 {
   "name": "react-virtualized-image-measurer",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Image Preloader for React & React Virtualized",
   "author": "Kirill Konshin",
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
     "clean": "rimraf .next out lib",
-    "babel": "babel src --out-dir lib",
+    "babel": "babel src --out-dir lib --source-maps",
     "build": "npm run clean && npm run babel",
     "start": "next",
-    "static": "next build && next export"
+    "static": "next build && next export",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",

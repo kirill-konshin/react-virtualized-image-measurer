@@ -82,6 +82,9 @@ export default class Index extends React.Component {
             <ImageMeasurer
                 items={this.props.noCacheList}
                 image={item => item.image}
+                onError={(error, item, src) => {
+                    console.error('Cannot load image', src, 'for item', item, 'error', error);
+                }}
                 defaultHeight={defaultHeight}
                 defaultWidth={defaultWidth}
             >

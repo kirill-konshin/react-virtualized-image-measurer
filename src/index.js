@@ -18,6 +18,7 @@ export default class ImageMeasurer extends PureComponent {
     static propTypes = {
         onError: PropTypes.func,
         timeout: PropTypes.number,
+        keyGetter: PropTypes.func,
         image: PropTypes.func.isRequired,
         children: PropTypes.func.isRequired,
         defaultWidth: PropTypes.number.isRequired,
@@ -25,7 +26,9 @@ export default class ImageMeasurer extends PureComponent {
     };
 
     static defaultProps = {
-        timeout: 5000
+        onError: () => null,
+        timeout: 5000,
+        keyGetter: () => null
     };
 
     makeItemsWithSizes = (items, sizes) => items.reduce((res, item) => {
@@ -81,9 +84,8 @@ export default class ImageMeasurer extends PureComponent {
 
     };
 
-    onLoadError = (src, error) => {
-        this.props.onError(error);
-        this.onLoad(src, this.getDefaultSize());
+    onLoadError = (event, item, src) => {
+        this.onLoad(src, this.props.onError(event, item, src) || this.getDefaultSize());
     };
 
     clearTimeout = (src) => {
@@ -130,13 +132,13 @@ export default class ImageMeasurer extends PureComponent {
 
     render() {
 
-        const {items, image, children, defaultWidth, defaultHeight, onError, timeout, ...props} = this.props;
+        const {items, image, keyGetter, children, defaultWidth, defaultHeight, onError, timeout, ...props} = this.props;
 
         return (
             <div {...props}>
 
                 <span style={styles}>
-                    {items.map(item => {
+                    {items.map((item, index) => {
 
                         const src = image(item);
 
@@ -144,11 +146,11 @@ export default class ImageMeasurer extends PureComponent {
 
                         return (
                             <img
-                                key={src}
+                                key={keyGetter(item, index) || index}
                                 src={src}
                                 alt={src}
                                 onLoad={event => this.onLoad(src, event.target)}
-                                onError={error => this.onLoadError(src, error)}
+                                onError={event => this.onLoadError(event, item, src)}
                             />
                         );
 

@@ -6,3 +6,4 @@ lib
 node_modules
 npm-debug*
 out
+package-lock.json
