@@ -1,10 +1,5 @@
 import React from "react";
-import {
-    CellMeasurer,
-    CellMeasurerCache,
-    createMasonryCellPositioner,
-    Masonry
-} from "react-virtualized";
+import {CellMeasurer, CellMeasurerCache, createMasonryCellPositioner, Masonry} from "react-virtualized";
 import ImageMeasurer from "../src";
 import list from "./data"; // an array of images with titles
 
@@ -12,6 +7,8 @@ const noCacheList = list.map((item, index) => ({
     title: index + '. ' + item.title,
     image: item.image + (item.image ? "?noCache=" + Math.random() : '')
 }));
+
+const keyMapper = (item, index) => item.image || index;
 
 const columnWidth = 200;
 const defaultHeight = 250;
@@ -25,16 +22,18 @@ const cache = new CellMeasurerCache({
 });
 
 // Our masonry layout will use 3 columns with a 10px gutter between
-const cellPositioner = createMasonryCellPositioner({
+const cellPositionerConfig = {
     cellMeasurerCache: cache,
     columnCount: 3,
     columnWidth,
     spacer: 10
-});
+};
 
-const MasonryComponent = ({itemsWithSizes}) => {
+const cellPositioner = createMasonryCellPositioner(cellPositionerConfig);
 
-    function cellRenderer({index, key, parent, style}) {
+const MasonryComponent = ({itemsWithSizes, setRef}) => {
+
+    const cellRenderer = ({index, key, parent, style}) => {
         const {item, size} = itemsWithSizes[index];
         const height = columnWidth * (size.height / size.width) || defaultHeight;
 
@@ -56,7 +55,7 @@ const MasonryComponent = ({itemsWithSizes}) => {
                 </div>
             </CellMeasurer>
         );
-    }
+    };
 
     return (
         <Masonry
@@ -66,32 +65,47 @@ const MasonryComponent = ({itemsWithSizes}) => {
             cellRenderer={cellRenderer}
             height={600}
             width={800}
+            keyMapper={keyMapper}
+            ref={setRef}
         />
     );
 };
 
 export default class Index extends React.Component {
-    static getInitialProps() {
-        return {
-            noCacheList: noCacheList
-        };
-    }
+
+    state = {images: noCacheList};
+
+    masonryRef = null;
+
+    // this shows how to significantly change the input array, if items will be only appended this recalculation is not needed
+    shorten = () => {
+        cache.clearAll();
+        cellPositioner.reset(cellPositionerConfig);
+        this.masonryRef.clearCellPositions();
+        this.setState({images: [...this.state.images.slice(1)]});
+    };
+
+    setMasonry = node => this.masonryRef = node;
 
     render() {
         return (
-            <ImageMeasurer
-                items={this.props.noCacheList}
-                image={item => item.image}
-                onError={(error, item, src) => {
-                    console.error('Cannot load image', src, 'for item', item, 'error', error);
-                }}
-                defaultHeight={defaultHeight}
-                defaultWidth={defaultWidth}
-            >
-                {({itemsWithSizes}) => (
-                    <MasonryComponent itemsWithSizes={itemsWithSizes}/>
-                )}
-            </ImageMeasurer>
+            <div>
+                <button onClick={this.shorten}>Resize</button>
+                <ImageMeasurer
+                    items={this.state.images}
+                    image={item => item.image}
+                    keyMapper={keyMapper}
+                    onError={(error, item, src) => {
+                        console.error('Cannot load image', src, 'for item', item, 'error', error);
+                    }}
+                    defaultHeight={defaultHeight}
+                    defaultWidth={defaultWidth}
+                >
+                    {({itemsWithSizes}) => (
+                        <MasonryComponent setRef={this.setMasonry} itemsWithSizes={itemsWithSizes}/>
+                    )}
+                </ImageMeasurer>
+            </div>
         );
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "react-virtualized-image-measurer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Image Preloader for React & React Virtualized",
   "author": "Kirill Konshin",
   "license": "MIT",

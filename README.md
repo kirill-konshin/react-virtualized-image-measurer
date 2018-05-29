@@ -56,6 +56,27 @@ export default () => (
 );
 ```
 
+## Filtering of original array
+
+You should not do anything extra if you simply add items to the end of original array. But if you filter items, change
+their order or insert items in the middle (basically anything that affect old items positioning), you have to manually
+reset `Masonry` caches due to it's optimizations.
+
+To do that you will have to save `Masonry`'s `ref` somewhere:
+
+```js
+const setRef = (node) => masonryRef = node;
+<Masonry ref={setRef}/>
+```
+
+And using this `ref` call following methods:
+
+```js
+cellMeasurerCache.clearAll();
+cellPositioner.reset(cellPositionerConfig);
+masonryRef.clearCellPositions();
+```
+
 ## Keys
 
 You can supply a custom key extractor callback prop in case you have duplicates in your array:
@@ -63,7 +84,7 @@ You can supply a custom key extractor callback prop in case you have duplicates 
 ```js
 export default () => (
     <ImageMeasurer
-        keyGetter={(item, index) => item.id}
+        keyMapper={(item, index) => item.id}
     >...</ImageMeasurer>
 );
 ```

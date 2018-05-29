@@ -18,7 +18,7 @@ export default class ImageMeasurer extends PureComponent {
     static propTypes = {
         onError: PropTypes.func,
         timeout: PropTypes.number,
-        keyGetter: PropTypes.func,
+        keyMapper: PropTypes.func,
         image: PropTypes.func.isRequired,
         children: PropTypes.func.isRequired,
         defaultWidth: PropTypes.number.isRequired,
@@ -28,7 +28,7 @@ export default class ImageMeasurer extends PureComponent {
     static defaultProps = {
         onError: () => null,
         timeout: 5000,
-        keyGetter: () => null
+        keyMapper: () => null
     };
 
     makeItemsWithSizes = (items, sizes) => items.reduce((res, item) => {
@@ -55,8 +55,7 @@ export default class ImageMeasurer extends PureComponent {
     timeouts = {};
 
     state = {
-        sizes: {},
-        itemsWithSizes: this.makeItemsWithSizes(this.props.items, {})
+        sizes: {}
     };
 
     onLoad = (src, ref) => {
@@ -75,12 +74,7 @@ export default class ImageMeasurer extends PureComponent {
             [src]: size
         };
 
-        const itemsWithSizes = this.makeItemsWithSizes(this.props.items, sizes);
-
-        this.setState({
-            sizes,
-            itemsWithSizes
-        });
+        this.setState({sizes});
 
     };
 
@@ -132,7 +126,10 @@ export default class ImageMeasurer extends PureComponent {
 
     render() {
 
-        const {items, image, keyGetter, children, defaultWidth, defaultHeight, onError, timeout, ...props} = this.props;
+        const {items, image, keyMapper, children, defaultWidth, defaultHeight, onError, timeout, ...props} = this.props;
+        const {sizes} = this.state;
+
+        const itemsWithSizes = this.makeItemsWithSizes(items, sizes);
 
         return (
             <div {...props}>
@@ -146,7 +143,7 @@ export default class ImageMeasurer extends PureComponent {
 
                         return (
                             <img
-                                key={keyGetter(item, index) || index}
+                                key={keyMapper(item, index) || index}
                                 src={src}
                                 alt={src}
                                 onLoad={event => this.onLoad(src, event.target)}
@@ -157,7 +154,7 @@ export default class ImageMeasurer extends PureComponent {
                     })}
                 </span>
 
-                {children(this.state)}
+                {children({itemsWithSizes, sizes})}
 
             </div>
         );
